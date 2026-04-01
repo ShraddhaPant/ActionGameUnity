@@ -7,60 +7,79 @@ public class PlayerController : MonoBehaviour
     public float aimSpeed = 1.5f;
     public float rotationSpeed = 10f;
 
-    private Rigidbody rb;
+    public float gravity = -9.8f;
+    public float groundCheckDistance = 0.2f;
+
+    public Transform firePoint;
+    public GameObject arrowPrefab;
+
+    private CharacterController controller;
+    private Vector3 velocity;
     private Vector3 movement;
     private float currentSpeed;
-    private bool isAiming;
 
-    Animator animator; // ✅ REQUIRED
-    
+    Animator animator;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        animator = GetComponentInChildren<Animator>(); // ✅ REQUIRED
+        controller = GetComponent<CharacterController>();
+        animator = GetComponentInChildren<Animator>();
     }
 
     void Update()
     {
+        // INPUT
         float moveX = Input.GetAxis("Horizontal");
         float moveZ = Input.GetAxis("Vertical");
 
-        movement = new Vector3(moveX, 0f, moveZ);
+        movement = new Vector3(moveX, 0f, moveZ).normalized;
 
         // AIM
-        bool isAimingNow = Input.GetMouseButton(1);
-        animator.SetBool("isAiming", isAimingNow);
+        bool isAiming = Input.GetMouseButton(1);
+        animator.SetBool("isAiming", isAiming);
 
         // SHOOT
-        if (Input.GetMouseButtonDown(0) && isAimingNow)
+        if (Input.GetMouseButtonDown(0) && isAiming)
         {
             animator.SetTrigger("Shoot");
         }
 
-        // Movement animation
-        float speed = movement.magnitude;
-        animator.SetFloat("Speed", speed, 0.1f, Time.deltaTime);
-
-        // Speed control
-        if (isAimingNow)
+        // SPEED CONTROL
+        if (isAiming)
             currentSpeed = aimSpeed;
         else if (Input.GetKey(KeyCode.LeftShift))
             currentSpeed = runSpeed;
         else
             currentSpeed = walkSpeed;
+
+        // MOVEMENT
+        if (movement.magnitude > 0.1f)
+        {
+            Vector3 move = movement * currentSpeed;
+            controller.Move(move * Time.deltaTime);
+
+            // ROTATION
+            Quaternion targetRotation = Quaternion.LookRotation(movement);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+        }
+
+        // GRAVITY (IMPORTANT)
+        if (controller.isGrounded && velocity.y < 0)
+        {
+            velocity.y = -2f; // keeps player grounded
+        }
+
+        velocity.y += gravity * Time.deltaTime;
+        controller.Move(velocity * Time.deltaTime);
+
+        // ANIMATION
+        animator.SetFloat("Speed", movement.magnitude, 0.1f, Time.deltaTime);
     }
 
-    void FixedUpdate()
-{
-    if (movement.magnitude > 0.1f)
+    public void ShootArrow()
     {
-        Vector3 moveDir = movement.normalized;
-
-        rb.MovePosition(rb.position + moveDir * currentSpeed * Time.fixedDeltaTime);
-
-        Quaternion targetRotation = Quaternion.LookRotation(moveDir);
-        rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime));
+        GameObject arrow = Instantiate(arrowPrefab, firePoint.position, firePoint.rotation);
+        Rigidbody rb = arrow.GetComponent<Rigidbody>();
+        rb.velocity = firePoint.forward * 20f;
     }
-}
 }
