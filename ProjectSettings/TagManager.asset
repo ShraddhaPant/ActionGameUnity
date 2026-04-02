@@ -5,6 +5,10 @@ TagManager:
   serializedVersion: 2
   tags:
   - Zombie
+  - Dragon
+  - Arrow
+  - player2
+  - NPC
   layers:
   - Default
   - TransparentFX
@@ -12,8 +16,8 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
+  - Player
+  - Dragon
   - 
   - 
   - 
