@@ -98,6 +98,8 @@ public class DragonAI : MonoBehaviour
     {
         while (!isDead)
         {
+            if (isDead) yield break; // ✅ FIX: hard exit if death triggered mid-loop
+
             FindNPC();
 
             if (npcTarget == null)
@@ -111,6 +113,7 @@ public class DragonAI : MonoBehaviour
 
     void FindNPC()
     {
+        if (isDead) return; // ✅ FIX: don't search if dead
         GameObject[] npcs = GameObject.FindGameObjectsWithTag("NPC");
         if (npcs.Length == 0) { npcTarget = null; return; }
 
@@ -129,7 +132,7 @@ public class DragonAI : MonoBehaviour
 
     void DecideAction()
     {
-        if (isAttacking || npcTarget == null) return;
+        if (isDead || isAttacking || npcTarget == null) return; // ✅ FIX: added isDead
 
         float dist = FlatDist(transform.position, npcTarget.position);
 
@@ -147,7 +150,7 @@ public class DragonAI : MonoBehaviour
 
     void ChaseNPC()
     {
-        if (npcTarget == null) return;
+        if (npcTarget == null || isDead) return; // ✅ FIX: don't chase if dead
         agent.isStopped = false;
         agent.speed = chaseSpeed;
         agent.SetDestination(npcTarget.position);
@@ -156,68 +159,79 @@ public class DragonAI : MonoBehaviour
     }
 
     IEnumerator AttackSequence()
+{
+    isAttacking = true;
+    attackTimer = attackCooldown;
+
+    agent.isStopped = true;
+    agent.ResetPath();
+
+    Transform victim = npcTarget;
+    npcTarget = null;
+
+    if (victim == null)
     {
-        isAttacking = true;
-        attackTimer = attackCooldown;
-
-        agent.isStopped = true;
-        agent.ResetPath();
-
-        Transform victim = npcTarget;
-        npcTarget = null;
-
-        if (victim == null)
-        {
-            Debug.LogWarning("[DragonAI] ⚠️ Victim disappeared before attack.");
-            isAttacking = false;
-            yield break;
-        }
-
-        NavMeshAgent victimNav = victim.GetComponent<NavMeshAgent>();
-        Rigidbody victimRb = victim.GetComponent<Rigidbody>();
-
-        if (victimNav != null) { victimNav.isStopped = true; victimNav.enabled = false; }
-        if (victimRb != null)
-        {
-            victimRb.velocity = Vector3.zero;
-            victimRb.angularVelocity = Vector3.zero;
-            victimRb.isKinematic = true;
-        }
-
-        foreach (Collider col in victim.GetComponentsInChildren<Collider>())
-            col.enabled = false;
-
-        victim.position = new Vector3(victim.position.x, -1000f, victim.position.z);
-
-        FaceTarget(victim);
-
-        Debug.Log("[DragonAI] 🪂 LANDING...");
-        SetOnly(hLands);
-        yield return new WaitForSeconds(1.2f);
-
-        Debug.Log($"[DragonAI] 🦷 BITING [{victim.name}]!");
-        SetOnly(hBite);
-        yield return new WaitForSeconds(1.4f);
-
-        if (victim != null)
-        {
-            int remaining = GameObject.FindGameObjectsWithTag("NPC").Length - 1;
-            Debug.Log($"[DragonAI] 💀 KILLED [{victim.name}]. NPCs remaining: {remaining}");
-            Destroy(victim.gameObject);
-        }
-
-        Debug.Log("[DragonAI] 🛫 TAKING OFF — hunting next target...");
-        SetOnly(hTakeOff);
-        yield return new WaitForSeconds(1.0f);
-
-        agent.isStopped = false;
-        SetOnly(hFlyingFWD);
+        Debug.LogWarning("[DragonAI] ⚠️ Victim disappeared before attack.");
         isAttacking = false;
+        yield break;
     }
+
+    NavMeshAgent victimNav = victim.GetComponent<NavMeshAgent>();
+    Rigidbody victimRb = victim.GetComponent<Rigidbody>();
+
+    if (victimNav != null) { victimNav.isStopped = true; victimNav.enabled = false; }
+    if (victimRb != null)
+    {
+        victimRb.velocity = Vector3.zero;
+        victimRb.angularVelocity = Vector3.zero;
+        victimRb.isKinematic = true;
+    }
+
+    foreach (Collider col in victim.GetComponentsInChildren<Collider>())
+        col.enabled = false;
+
+    victim.position = new Vector3(victim.position.x, -1000f, victim.position.z);
+
+    FaceTarget(victim);
+
+    Debug.Log("[DragonAI] 🪂 LANDING...");
+    SetOnly(hLands);
+    yield return new WaitForSeconds(1.2f);
+    if (isDead) yield break; // ✅ FIX
+
+    Debug.Log($"[DragonAI] 🦷 BITING [{victim.name}]!");
+    SetOnly(hBite);
+    yield return new WaitForSeconds(1.4f);
+    if (isDead) yield break; // ✅ FIX
+
+    if (victim != null)
+    {
+        int remaining = GameObject.FindGameObjectsWithTag("NPC").Length - 1;
+        Debug.Log($"[DragonAI] 💀 KILLED [{victim.name}]. NPCs remaining: {remaining}");
+        Destroy(victim.gameObject);
+    }
+
+    if (isDead) yield break; // ✅ FIX
+
+    Debug.Log("[DragonAI] 🛫 TAKING OFF — hunting next target...");
+    SetOnly(hTakeOff);
+    yield return new WaitForSeconds(1.0f);
+    if (isDead) yield break; // ✅ FIX
+
+    agent.isStopped = false;
+    SetOnly(hFlyingFWD);
+    isAttacking = false;
+}
 
     public void TriggerDeath()
     {
         if (isDead) return;
+        isDead = true;
+        isAttacking = false; // ✅ FIX: cancel any active attack so coroutine can't resume
+        npcTarget = null;    // ✅ FIX: clear target immediately
+        agent.isStopped = true;  // ✅ FIX: stop movement immediately
+        agent.ResetPath();       // ✅ FIX: clear path immediately
+        StopAllCoroutines();
         StartCoroutine(DieDragon());
     }
 

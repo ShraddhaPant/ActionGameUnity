@@ -68,7 +68,7 @@
     <Compile Include="Assets\Island2\player\scripts\CameraFollow.cs" />
     <Compile Include="Assets\Default URP Assets\TutorialInfo\Scripts\Readme.cs" />
     <Compile Include="Assets\Island1\Pl1\PlayerMovement.cs" />
-    <Compile Include="Assets\Island2\RedDragon 1.2\Everything\Scripts\SimpleNPC.cs" />
+    <Compile Include="Assets\Island2\Citizen\citizenScripts\CitizenRandomAI.cs" />
     <Compile Include="Assets\Island2\RedDragon 1.2\Everything\Scripts\DragonExample.cs" />
     <Compile Include="Assets\Default URP Assets\Scripts\SimpleCameraController.cs" />
     <Compile Include="Assets\Island1\Zombies\ZombieHealth.cs" />
@@ -77,11 +77,14 @@
     <Compile Include="Assets\Island2\player\scripts\PlayerAttack.cs" />
     <Compile Include="Assets\Island1\Pl1\MouseLook.cs" />
     <Compile Include="Assets\Island1\Zombies\ZombieController.cs" />
+    <Compile Include="Assets\Island2\Citizen\citizenScripts\CitizenSpawner.cs" />
     <Compile Include="Assets\Island2\player\scripts\Arrow.cs" />
+    <Compile Include="Assets\Island2\RedDragon 1.2\Everything\Scripts\DragonSoundController.cs" />
     <Compile Include="Assets\Island2\player\scripts\PlayerController.cs" />
     <Compile Include="Assets\Island1\Pl1\PlayerHealth.cs" />
     <Compile Include="Assets\Island1\Pl1\GameManager.cs" />
     <Compile Include="Assets\Island1\Pl1\GunShoot.cs" />
+    <Compile Include="Assets\Island2\Citizen\citizenScripts\Citizen.cs" />
     <Compile Include="Assets\Island2\RedDragon 1.2\Everything\Scripts\DragonAI.cs" />
   </ItemGroup>
   <ItemGroup>

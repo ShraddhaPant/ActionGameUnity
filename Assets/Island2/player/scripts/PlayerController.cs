@@ -2,10 +2,10 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public float walkSpeed = 2f;
-    public float runSpeed = 4f;
-    public float aimSpeed = 1.5f;
-    public float rotationSpeed = 10f;
+    public float walkSpeed = 12f;
+    public float runSpeed = 1.5f;
+    public float aimSpeed = 7f;
+    public float rotationSpeed = 13f;
 
     private Rigidbody rb;
     private Vector3 movement;

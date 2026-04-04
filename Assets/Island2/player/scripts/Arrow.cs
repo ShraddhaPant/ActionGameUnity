@@ -2,9 +2,10 @@ using UnityEngine;
 
 public class Arrow : MonoBehaviour
 {
-    public float speed = 5f;
+    public float speed = 20f;
     public int damage = 10;
-    public float maxDistance = 10f;
+    public float maxDistance = 50f;
+    public float arcHeight = 0.3f;
 
     private Rigidbody rb;
     private Vector3 startPos;
@@ -14,9 +15,27 @@ public class Arrow : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         startPos = transform.position;
 
+        GameObject dragon = GameObject.FindGameObjectWithTag("Dragon");
+
         if (rb != null)
         {
-            rb.velocity = transform.forward * speed;
+            if (dragon != null)
+            {
+                // 🎯 Target dragon
+                Vector3 targetPos = dragon.transform.position + Vector3.up * 1.5f;
+
+                Vector3 direction = (targetPos - transform.position).normalized;
+
+                // 🔥 Add arc
+                direction += Vector3.up * arcHeight;
+
+                rb.velocity = direction.normalized * speed;
+            }
+            else
+            {
+                // fallback
+                rb.velocity = transform.forward * speed;
+            }
         }
 
         Destroy(gameObject, 5f);
@@ -24,7 +43,7 @@ public class Arrow : MonoBehaviour
 
     void Update()
     {
-        // Destroy arrow if it goes too far
+        // Destroy if too far
         if (Vector3.Distance(startPos, transform.position) > maxDistance)
         {
             Destroy(gameObject);
@@ -35,9 +54,13 @@ public class Arrow : MonoBehaviour
     {
         if (other.CompareTag("Dragon"))
         {
-            Debug.Log("Hit Dragon");
+            Debug.Log("🔥 Hit Dragon!");
 
-            other.GetComponent<DragonHealth>()?.TakeDamage(damage);
+            DragonHealth dh = other.GetComponent<DragonHealth>();
+            if (dh != null)
+            {
+                dh.TakeDamage(damage);
+            }
 
             PlayerAttack player = FindObjectOfType<PlayerAttack>();
             if (player != null)

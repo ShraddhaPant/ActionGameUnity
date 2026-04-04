@@ -15,15 +15,23 @@ public class PlayerAttack : MonoBehaviour
     }
 
     void Shoot()
-{
-    if (currentHits >= maxHits)
     {
-        Debug.Log("dragon defeated");
-        return;
+        if (currentHits >= maxHits)
+        {
+            Debug.Log("Dragon defeated!");
+            return;
+        }
+
+        Debug.Log("Shooting arrow");
+
+        // Spawn arrow in front of player
+        Instantiate(
+            arrowPrefab,
+            transform.position + transform.forward * 2f + Vector3.up * 1.5f,
+            transform.rotation
+        );
     }
 
-    Instantiate(arrowPrefab, transform.position + transform.forward * 2 + Vector3.up * 1.5f, transform.rotation);
-}
     public void IncreaseHit()
     {
         currentHits++;
