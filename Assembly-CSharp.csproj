@@ -64,10 +64,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Island2\scripts\PlayerAttack.cs" />
+    <Compile Include="Assets\Island2\citizenScripts\Citizen.cs" />
+    <Compile Include="Assets\Island2\citizenScripts\CitizenRandomAI.cs" />
     <Compile Include="Assets\Island2\scripts\PlayerAnimation.cs" />
-    <Compile Include="Assets\Island2\scripts\Citizen.cs" />
     <Compile Include="Assets\Island2\scripts\PlayerHealth.cs" />
-    <Compile Include="Assets\Island2\scripts\CitizenRandomAI.cs" />
     <Compile Include="Assets\Island2\scripts\DragonHealth.cs" />
     <Compile Include="Assets\Island2\scripts\Arrow.cs" />
     <Compile Include="Assets\Island2\scripts\PlayerController.cs" />
