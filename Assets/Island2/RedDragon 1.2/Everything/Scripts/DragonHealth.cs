@@ -7,23 +7,23 @@ public class DragonHealth : MonoBehaviour
 {
     [Header("Health Settings")]
     public float maxHealth    = 100f;
-    public float damagePerHit = 5f;       // 20 arrows = dead
+    public float damagePerHit = 5f;
 
     [Header("Health Bar UI")]
-    public Canvas    healthCanvas;         // World Space Canvas (child of dragon)
-    public Image     healthBarFill;        // Red fill image
-    public Image     healthBarBackground;  // Dark background image
+    public Canvas    healthCanvas;
+    public Image     healthBarFill;
+    public Image     healthBarBackground;
 
     [Header("Bar Settings")]
-    public float lerpSpeed    = 5f;        // Smoothness of bar shrink
+    public float lerpSpeed    = 5f;
     public Color fullColor    = Color.green;
     public Color halfColor    = Color.yellow;
     public Color lowColor     = Color.red;
 
     private float currentHealth;
-    private float targetFill;             // what the bar is lerping toward
+    private float targetFill;
     private Camera mainCam;
-    private DragonAI dragonAI;            // reference to notify AI of death
+    private DragonAI dragonAI;
 
     void Start()
     {
@@ -32,7 +32,6 @@ public class DragonHealth : MonoBehaviour
         mainCam       = Camera.main;
         dragonAI      = GetComponent<DragonAI>();
 
-        // Make sure bar starts full
         if (healthBarFill != null)
             healthBarFill.fillAmount = 1f;
 
@@ -43,12 +42,10 @@ public class DragonHealth : MonoBehaviour
 
     void Update()
     {
-        // Billboard — always face the camera
         if (healthCanvas != null && mainCam != null)
             healthCanvas.transform.rotation = Quaternion.LookRotation(
                 healthCanvas.transform.position - mainCam.transform.position);
 
-        // Smoothly lerp the bar fill
         if (healthBarFill != null)
         {
             healthBarFill.fillAmount = Mathf.Lerp(
@@ -58,7 +55,6 @@ public class DragonHealth : MonoBehaviour
         }
     }
 
-    // ─── CALLED BY ARROW ──────────────────────────────────────
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Arrow"))
@@ -68,7 +64,6 @@ public class DragonHealth : MonoBehaviour
         }
     }
 
-    // ─── PUBLIC — can be called from anywhere ─────────────────
     public void TakeDamage(float dmg)
     {
         if (currentHealth <= 0f) return;
@@ -76,8 +71,8 @@ public class DragonHealth : MonoBehaviour
         currentHealth -= dmg;
         currentHealth  = Mathf.Clamp(currentHealth, 0f, maxHealth);
 
-        float pct      = currentHealth / maxHealth;
-        targetFill     = pct;
+        float pct  = currentHealth / maxHealth;
+        targetFill = pct;
 
         UpdateBarColor(pct);
 
@@ -88,7 +83,6 @@ public class DragonHealth : MonoBehaviour
             StartCoroutine(Die());
     }
 
-    // ─── COLOR BASED ON HP ────────────────────────────────────
     void UpdateBarColor(float pct)
     {
         if (healthBarFill == null) return;
@@ -99,32 +93,35 @@ public class DragonHealth : MonoBehaviour
             healthBarFill.color = Color.Lerp(lowColor, halfColor, pct * 2f);
     }
 
-    // ─── DEATH ────────────────────────────────────────────────
+    // ─── ONLY THIS CHANGED ────────────────────────────────────
     IEnumerator Die()
     {
         Debug.Log("[DragonHealth] ☠️ Dragon HP reached 0 — dying!");
 
-        // Hide health bar
+        // ✅ Stop this script immediately
+        this.enabled = false;
+
+        // ✅ Hide health bar
         if (healthCanvas != null)
             healthCanvas.gameObject.SetActive(false);
 
-        // Tell DragonAI to play death animation
+        // ✅ Tell DragonAI to die — this also calls StopAllCoroutines inside
         if (dragonAI != null)
             dragonAI.TriggerDeath();
         else
+            Debug.LogWarning("[DragonHealth] DragonAI not found!");
+
+        // ✅ GUARANTEED destroy — fires no matter what after timer
+        float waitTime = (dragonAI != null) ? dragonAI.disappearDelay + 2f : 5f;
+        yield return new WaitForSeconds(waitTime);
+
+        if (gameObject != null)
         {
-            // Fallback if no DragonAI found
-            Debug.LogWarning("[DragonHealth] DragonAI not found — destroying dragon directly.");
-            yield return new WaitForSeconds(3f);
+            Debug.Log("[DragonHealth] 🗑️ Guaranteed destroy fired.");
             Destroy(gameObject);
         }
-
-        yield return null;
     }
 
-    
-
-    // ─── OPTIONAL: heal (for future use) ─────────────────────
     public void Heal(float amount)
     {
         currentHealth = Mathf.Clamp(currentHealth + amount, 0f, maxHealth);
